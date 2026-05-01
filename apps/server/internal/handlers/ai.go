@@ -9,6 +9,7 @@ import (
 	"net/http"
 
 	"cyberrange-server/internal/models"
+	"cyberrange-server/internal/providers"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
@@ -16,11 +17,12 @@ import (
 )
 
 type AIHandler struct {
-	DB *pgxpool.Pool
+	DB       *pgxpool.Pool
+	Registry *providers.Registry
 }
 
-func NewAIHandler(db *pgxpool.Pool) *AIHandler {
-	return &AIHandler{DB: db}
+func NewAIHandler(db *pgxpool.Pool, registry *providers.Registry) *AIHandler {
+	return &AIHandler{DB: db, Registry: registry}
 }
 
 func (h *AIHandler) Chat(c *gin.Context) {
@@ -34,8 +36,7 @@ func (h *AIHandler) Chat(c *gin.Context) {
 
 	_ = userID
 
-	// Load user's API config from settings
-	// For now, use DashScope compatible endpoint as default
+	// Load API key from header
 	apiKey := c.GetHeader("X-API-Key")
 	if apiKey == "" {
 		c.JSON(http.StatusBadRequest, models.APIResponse{Success: false, Error: "missing API key, set X-API-Key header or configure in settings"})
@@ -58,9 +59,9 @@ func (h *AIHandler) Chat(c *gin.Context) {
 		Content string `json:"content"`
 	}
 	type chatReq struct {
-		Model    string     `json:"model"`
-		Messages []chatMsg  `json:"messages"`
-		Stream   bool       `json:"stream"`
+		Model    string    `json:"model"`
+		Messages []chatMsg `json:"messages"`
+		Stream   bool      `json:"stream"`
 	}
 
 	msgs := make([]chatMsg, len(req.Messages))
@@ -113,6 +114,13 @@ func (h *AIHandler) Solve(c *gin.Context) {
 }
 
 func (h *AIHandler) GetModels(c *gin.Context) {
+	if h.Registry != nil {
+		models := h.Registry.ListModels()
+		c.JSON(http.StatusOK, models.APIResponse{Success: true, Data: models})
+		return
+	}
+
+	// Fallback: hardcoded list
 	models := []gin.H{
 		{"id": "qwen3.5-plus", "name": "Qwen 3.5 Plus", "provider": "dashscope"},
 		{"id": "kimi-k2.6", "name": "Kimi K2.6", "provider": "dashscope"},

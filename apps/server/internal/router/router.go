@@ -7,13 +7,23 @@ import (
 
 	"cyberrange-server/internal/handlers"
 	"cyberrange-server/internal/middleware"
+	"cyberrange-server/internal/providers"
+	"cyberrange-server/internal/services"
 
 	"github.com/gin-gonic/gin"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/redis/go-redis/v9"
 )
 
-func Setup(db *pgxpool.Pool, rdb *redis.Client, jwtSecret string) *gin.Engine {
+type RouterConfig struct {
+	DB       *pgxpool.Pool
+	Redis    *redis.Client
+	JWTSecret string
+	Pool     *services.ContainerPool
+	Registry *providers.Registry
+}
+
+func Setup(db *pgxpool.Pool, rdb *redis.Client, jwtSecret string, pool *services.ContainerPool, registry *providers.Registry) *gin.Engine {
 	gin.SetMode(gin.ReleaseMode)
 	r := gin.New()
 	r.Use(gin.Recovery())
@@ -28,11 +38,11 @@ func Setup(db *pgxpool.Pool, rdb *redis.Client, jwtSecret string) *gin.Engine {
 	// Handlers
 	auth := handlers.NewAuthHandler(db, jwtSecret)
 	categories := handlers.NewCategoryHandler(db)
-	labs := handlers.NewLabHandler(db, rdb)
+	labs := handlers.NewLabHandler(db, rdb, pool)
 	lessons := handlers.NewLessonHandler(db)
 	progress := handlers.NewProgressHandler(db)
 	traffic := handlers.NewTrafficHandler(db)
-	ai := handlers.NewAIHandler(db)
+	ai := handlers.NewAIHandler(db, registry)
 
 	v1 := r.Group("/api/v1")
 
