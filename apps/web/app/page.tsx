@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import { api } from "@/lib/api"
 
 const categories = [
   { slug: "brute-force", name: "暴力破解", icon: "Shield", color: "#ef4444", desc: "表单暴力破解、验证码绕过、Token 防爆破" },
@@ -15,7 +16,22 @@ const categories = [
 ]
 
 export default function Dashboard() {
-  const [stats, setStats] = useState({ total: 36, completed: 0, inProgress: 0 })
+  const [stats, setStats] = useState({ total: 36, completed: 0, inProgress: 0, aiAssists: 0 })
+
+  useEffect(() => {
+    async function fetchStats() {
+      const res = await api.getProgress()
+      if (res.success && res.data) {
+        setStats({
+          total: res.data.total || 36,
+          completed: res.data.completed || 0,
+          inProgress: res.data.in_progress || 0,
+          aiAssists: 0,
+        })
+      }
+    }
+    fetchStats()
+  }, [])
 
   return (
     <div className="p-8 max-w-7xl mx-auto animate-fade-in">
@@ -30,7 +46,7 @@ export default function Dashboard() {
         <StatCard label="靶场总数" value={stats.total} icon="target" color="#3b82f6" />
         <StatCard label="已完成" value={stats.completed} icon="check" color="#10b981" />
         <StatCard label="进行中" value={stats.inProgress} icon="play" color="#f59e0b" />
-        <StatCard label="AI 辅助次数" value={0} icon="bot" color="#8b5cf6" />
+        <StatCard label="AI 辅助次数" value={stats.aiAssists} icon="bot" color="#8b5cf6" />
       </div>
 
       {/* Categories Grid */}
@@ -65,7 +81,6 @@ export default function Dashboard() {
                   <p className="text-sm text-muted-foreground mt-1 line-clamp-2">{cat.desc}</p>
                 </div>
               </div>
-              {/* Progress bar placeholder */}
               <div className="mt-4 h-1.5 rounded-full bg-muted overflow-hidden">
                 <div className="h-full rounded-full bg-accent/50" style={{ width: "0%" }} />
               </div>

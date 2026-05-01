@@ -1,29 +1,42 @@
 "use client"
 
-const categories = [
-  { slug: "brute-force", name: "暴力破解", color: "#ef4444", desc: "表单暴力破解、验证码绕过、Token 防爆破", labs: 4, icon: "Shield" },
-  { slug: "xss", name: "XSS 跨站脚本", color: "#f59e0b", desc: "反射型、存储型、DOM 型、XSS 盲打", labs: 4, icon: "Code" },
-  { slug: "csrf", name: "CSRF 跨站请求伪造", color: "#8b5cf6", desc: "GET 型、POST 型、带 Token 的 CSRF", labs: 4, icon: "ArrowRightLeft" },
-  { slug: "sqli", name: "SQL 注入", color: "#3b82f6", desc: "数字型、字符型、搜索型、盲注、宽字节、Header 注入", labs: 4, icon: "Database" },
-  { slug: "rce", name: "命令执行", color: "#10b981", desc: "Ping 执行、代码执行（eval）", labs: 4, icon: "Terminal" },
-  { slug: "file-inclusion", name: "文件包含", color: "#06b6d4", desc: "本地文件包含（LFI）、远程文件包含（RFI）", labs: 4, icon: "FolderOpen" },
-  { slug: "file-upload", name: "文件上传/下载", color: "#ec4899", desc: "不安全文件上传、任意文件下载", labs: 4, icon: "Upload" },
-  { slug: "privilege", name: "越权", color: "#f97316", desc: "水平越权、垂直越权、未授权访问", labs: 4, icon: "Lock" },
-  { slug: "other", name: "其他高频漏洞", color: "#6b7280", desc: "目录遍历、信息泄露、反序列化、XXE、SSRF、URL 重定向", labs: 4, icon: "Bug" },
-]
+import { useState, useEffect } from "react"
+import { api } from "@/lib/api"
 
 export default function CategoriesPage() {
+  const [categories, setCategories] = useState<any[]>([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    async function fetchCategories() {
+      const res = await api.getCategories()
+      if (res.success && res.data) {
+        setCategories(res.data)
+      }
+      setLoading(false)
+    }
+    fetchCategories()
+  }, [])
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-full">
+        <div className="w-6 h-6 border-2 border-accent border-t-transparent rounded-full animate-spin" />
+      </div>
+    )
+  }
+
   return (
     <div className="p-8 max-w-7xl mx-auto animate-fade-in">
       <div className="mb-8">
         <h1 className="text-3xl font-bold tracking-tight">漏洞分类</h1>
-        <p className="text-muted-foreground mt-1">9 大类漏洞，每类 4 个难度，共 36 个靶场</p>
+        <p className="text-muted-foreground mt-1">{categories.length} 大类漏洞，每类 4 个难度，共 36 个靶场</p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
         {categories.map((cat) => (
           <a
-            key={cat.slug}
+            key={cat.id}
             href={`/labs/${cat.slug}`}
             className="group block p-6 rounded-xl border border-border bg-card hover:border-border-hover transition-all duration-200 hover:scale-[1.02]"
           >
@@ -44,9 +57,9 @@ export default function CategoriesPage() {
               </svg>
             </div>
             <h3 className="text-lg font-semibold group-hover:text-accent transition-colors mb-1">{cat.name}</h3>
-            <p className="text-sm text-muted-foreground mb-4">{cat.desc}</p>
+            <p className="text-sm text-muted-foreground mb-4">{cat.description}</p>
             <div className="flex items-center justify-between text-xs text-muted-foreground">
-              <span>{cat.labs} 个难度</span>
+              <span>4 个难度</span>
               <span className="group-hover:text-accent transition-colors">进入 →</span>
             </div>
           </a>
