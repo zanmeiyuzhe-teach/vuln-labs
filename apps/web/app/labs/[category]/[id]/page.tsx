@@ -5,8 +5,10 @@ import { api } from "@/lib/api"
 import { difficultyConfig, type Difficulty } from "@/lib/utils"
 import { DifficultyBadge } from "@/components/lab/DifficultyBadge"
 import { LabPlayground } from "@/components/lab/LabPlayground"
+import { use } from "react"
 
-export default function LabDetailPage({ params }: { params: { category: string; id: string } }) {
+export default function LabDetailPage({ params }: { params: Promise<{ category: string; id: string }> }) {
+  const { category, id } = use(params)
   const [lab, setLab] = useState<any>(null)
   const [loading, setLoading] = useState(true)
   const [showPlayground, setShowPlayground] = useState(false)
@@ -14,12 +16,12 @@ export default function LabDetailPage({ params }: { params: { category: string; 
   useEffect(() => {
     async function fetchLab() {
       setLoading(true)
-      const res = await api.getLab(params.id)
+      const res = await api.getLab(id)
       if (res.success) setLab(res.data)
       setLoading(false)
     }
     fetchLab()
-  }, [params.id])
+  }, [id])
 
   if (loading) {
     return (
@@ -33,7 +35,7 @@ export default function LabDetailPage({ params }: { params: { category: string; 
     return (
       <div className="flex flex-col items-center justify-center h-full text-muted-foreground">
         <p className="text-lg mb-2">靶场未找到</p>
-        <a href={`/labs/${params.category}`} className="text-sm text-accent hover:underline">返回列表</a>
+        <a href={`/labs/${category}`} className="text-sm text-accent hover:underline">返回列表</a>
       </div>
     )
   }
@@ -51,7 +53,7 @@ export default function LabDetailPage({ params }: { params: { category: string; 
       <div className="flex items-center gap-2 mb-6 text-sm">
         <a href="/categories" className="text-muted-foreground hover:text-foreground">漏洞分类</a>
         <span className="text-muted-foreground">/</span>
-        <a href={`/labs/${params.category}`} className="text-muted-foreground hover:text-foreground">{params.category}</a>
+        <a href={`/labs/${category}`} className="text-muted-foreground hover:text-foreground">{category}</a>
         <span className="text-muted-foreground">/</span>
         <span className="text-foreground">{lab.name}</span>
       </div>

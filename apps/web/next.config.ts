@@ -1,12 +1,12 @@
-import type { NextConfig } from 'next'
+import type { NextConfig } from "next"
 
 const nextConfig: NextConfig = {
-  output: 'standalone',
+  output: "standalone",
   async rewrites() {
     return [
       {
-        source: '/api/:path*',
-        destination: 'http://server:8080/api/:path*',
+        source: "/api/:path*",
+        destination: "http://server:8080/api/:path*",
       },
     ]
   },

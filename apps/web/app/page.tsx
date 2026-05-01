@@ -22,10 +22,11 @@ export default function Dashboard() {
     async function fetchStats() {
       const res = await api.getProgress()
       if (res.success && res.data) {
+        const d = res.data as any
         setStats({
-          total: res.data.total || 36,
-          completed: res.data.completed || 0,
-          inProgress: res.data.in_progress || 0,
+          total: d.total || 36,
+          completed: d.completed || 0,
+          inProgress: d.in_progress || 0,
           aiAssists: 0,
         })
       }

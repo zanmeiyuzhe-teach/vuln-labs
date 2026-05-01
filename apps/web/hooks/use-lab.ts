@@ -27,11 +27,12 @@ export function useLab(labId: string | null) {
 
     const res = await api.startLab(labId)
     if (res.success && res.data) {
+      const d = res.data as any
       setState({
         status: "running",
-        containerUrl: res.data.url,
-        containerId: res.data.container_id,
-        expiresAt: res.data.expires_at,
+        containerUrl: d.url,
+        containerId: d.container_id,
+        expiresAt: d.expires_at,
         error: null,
       })
     } else {
@@ -67,12 +68,13 @@ export function useLab(labId: string | null) {
     }
 
     pollRef.current = setInterval(async () => {
-      const res = await api.request("GET", `/labs/${labId}/status`)
+      const res = await api.getLabStatus(labId)
       if (res.success && res.data) {
-        if (res.data.status === "not_running") {
+        const d = res.data as any
+        if (d.status === "not_running") {
           setState({ status: "idle", containerUrl: null, containerId: null, expiresAt: null, error: null })
         } else {
-          setState((s) => ({ ...s, expiresAt: res.data.expires_at }))
+          setState((s) => ({ ...s, expiresAt: d.expires_at }))
         }
       }
     }, 30000)

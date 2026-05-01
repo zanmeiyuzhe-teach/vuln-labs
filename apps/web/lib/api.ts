@@ -84,6 +84,10 @@ class APIClient {
     return this.request("POST", `/labs/${id}/reset`)
   }
 
+  getLabStatus(id: string) {
+    return this.request("GET", `/labs/${id}/status`)
+  }
+
   // Lessons
   getLessons(category?: string) {
     const q = category ? `?category=${category}` : ""

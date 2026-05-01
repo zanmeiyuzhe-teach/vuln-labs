@@ -1,21 +1,22 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, use } from "react"
 import { api } from "@/lib/api"
 
-export default function LessonPage({ params }: { params: { id: string } }) {
+export default function LessonPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = use(params)
   const [lesson, setLesson] = useState<any>(null)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     async function fetchLesson() {
       setLoading(true)
-      const res = await api.getLesson(params.id)
+      const res = await api.getLesson(id)
       if (res.success) setLesson(res.data)
       setLoading(false)
     }
     fetchLesson()
-  }, [params.id])
+  }, [id])
 
   if (loading) {
     return (
@@ -59,7 +60,7 @@ export default function LessonPage({ params }: { params: { id: string } }) {
   )
 }
 
-// Simple markdown renderer — will be replaced with react-markdown
+// Simple markdown renderer
 function renderMarkdown(md: string): string {
   if (!md) return ""
   return md

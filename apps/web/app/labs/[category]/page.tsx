@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, use } from "react"
 import { api } from "@/lib/api"
 import { difficultyConfig, type Difficulty } from "@/lib/utils"
 import { DifficultyBadge } from "@/components/lab/DifficultyBadge"
@@ -17,16 +17,17 @@ const categoryMeta: Record<string, { name: string; color: string; desc: string }
   "other": { name: "其他高频漏洞", color: "#6b7280", desc: "目录遍历、信息泄露、反序列化、XXE、SSRF" },
 }
 
-export default function LabsPage({ params }: { params: { category: string } }) {
+export default function LabsPage({ params }: { params: Promise<{ category: string }> }) {
+  const { category } = use(params)
   const [activeTab, setActiveTab] = useState<Difficulty>("easy")
   const [labs, setLabs] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
-  const cat = categoryMeta[params.category] || { name: params.category, color: "#6b7280", desc: "" }
+  const cat = categoryMeta[category] || { name: category, color: "#6b7280", desc: "" }
 
   useEffect(() => {
     async function fetchLabs() {
       setLoading(true)
-      const res = await api.getLabs({ category: params.category, difficulty: activeTab })
+      const res = await api.getLabs({ category: category, difficulty: activeTab })
       if (res.success && res.data) {
         setLabs(res.data)
       } else {
@@ -35,7 +36,7 @@ export default function LabsPage({ params }: { params: { category: string } }) {
       setLoading(false)
     }
     fetchLabs()
-  }, [params.category, activeTab])
+  }, [category, activeTab])
 
   const tabs: Difficulty[] = ["easy", "simple", "hard", "hell"]
 
@@ -101,7 +102,7 @@ export default function LabsPage({ params }: { params: { category: string } }) {
               </div>
               <div className="flex gap-2">
                 <a
-                  href={`/labs/${params.category}/${lab.id}`}
+                  href={`/labs/${category}/${lab.id}`}
                   className="flex-1 px-4 py-2 rounded-lg bg-accent text-white text-sm font-medium hover:bg-accent-hover transition-colors text-center"
                 >
                   启动靶场
